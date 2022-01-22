@@ -89,7 +89,7 @@ public:
         Equal(adjlst[i], x.adjlst[i]);
     }
     }
-    void DeleteConnection(T data1, T data2){
+    void DeleteEdge(T data1, T data2){
         int x,y;
         x=Find(data1);
         y=Find(data2);
@@ -97,7 +97,7 @@ public:
             return;
         adjlst[x].lst.remove(y);
     }
-    void Link(T data1, T data2){
+    void AddEdge(T data1, T data2){
         int x,y;
         x=Find(data1);
         y=Find(data2);
@@ -113,7 +113,7 @@ public:
         adjlst[adjlst.size()-1].lst.clear();
         return;
     }
-    void removeNode(T data){
+    void DeleteNode(T data){
         int g=Find(data);
         if(g<0)
             return;
@@ -122,7 +122,7 @@ public:
         ChangeReference(g,adjlst.size()-1);
         sizedown();
     }
-    void dTraverse(T r, void doit(T data)){
+    void dfs(T r, void visit(T data)){
         int g=Find(r);
         if(g<0)
             return;
@@ -136,7 +136,7 @@ public:
         while(!alltrue(passed) && !x.empty()){
             g=x.top();
             x.pop();
-            doit(adjlst[g].data);
+            visit(adjlst[g].data);
             passed[g]=2;
             for(list<int>::iterator i=adjlst[g].lst.begin();i!=adjlst[g].lst.end();i++){
                 if(!passed[*i]){
@@ -148,7 +148,7 @@ public:
         cout << endl;
         return;
     }
-    void bTraverse(T r, void doit(T data)){
+    void bfs(T r, void visit(T data)){
         int g=Find(r);
         if(g<0)
             return;
@@ -162,7 +162,7 @@ public:
         while(!alltrue(passed) && !x.empty()){
             g=x.front();
             x.pop();
-            doit(adjlst[g].data);
+            visit(adjlst[g].data);
             passed[g]=2;
             for(list<int>::iterator i=adjlst[g].lst.begin();i!=adjlst[g].lst.end();i++){
                 if(!passed[*i]){
@@ -187,21 +187,21 @@ int main()
     r.addNode(6);
     r.addNode(9);
     r.addNode(3);
-    r.Link(5,9);
-    r.Link(6,5);
-    r.Link(6,3);
+    r.AddEdge(5,9);
+    r.AddEdge(6,5);
+    r.AddEdge(6,3);
     r.addNode(4);
     r.addNode(0);
-    r.Link(3,4);
-    r.Link(4,0);
-    r.dTraverse(6,print);
+    r.AddEdge(3,4);
+    r.AddEdge(4,0);
+    r.dfs(6,print);
     Graph<int> y(r);
-    y.bTraverse(6,print);
+    y.bfs(6,print);
     y.removeNode(0);
-    y.dTraverse(6,print);
+    y.dfs(6,print);
     y.addNode(8);
-    y.dTraverse(3,print);
+    y.dfs(3,print);
     y.DeleteConnection(3,4);
-    y.dTraverse(3,print);
+    y.dfs(3,print);
     return 0;
 }
