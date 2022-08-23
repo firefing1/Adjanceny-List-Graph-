@@ -1,207 +1,129 @@
+//
+// File:   AdjList.cpp
+// Author: Nicholas White
+// Purpose:
+// Adjacency list implementation of a graph class
+// 
+//
 #include <iostream>
 #include <vector>
-#include <list>
 #include <stack>
-#include <queue>
+#include <list>
+
 
 using namespace std;
 
-template <typename T>
-struct start{
-    T data;
-    list<int> lst;
-};
-
-template <typename T>
-class Graph{
+template <class ValueType>
+class Adj_List {
 private:
-    vector<start<T>> adjlst;
-    void fillvector(int g, vector<int> k){
-        for(int i=0;i<k.size();i++){
-            k[i]=g;
-        }
-        return;
-    }
-    void swap(int pos1, int pos2){
-        start<T> x;
-        Equal(x,adjlst[pos1]);
-        Equal(adjlst[pos1],adjlst[pos2]);
-        Equal(adjlst[pos2],x);
-    }
-    void Equal(start<T>& x, start<T> y){
-        x.lst.clear();
-        x.data=y.data;
-        for(list<int>::iterator cnt=y.lst.begin();cnt!=y.lst.end();cnt++){
-            x.lst.push_back(*cnt);
-        }
-        return;
-    }
-    void sizeup(){
-        adjlst.resize(adjlst.size()+1);
-    }
-    void sizedown(){
-        adjlst.resize(adjlst.size()-1);
-    }
-    int Find(T data){
-        for(int i=0; i<adjlst.size();i++){
-            if(adjlst[i].data==data)
-                return i;
+
+    struct head_tail {
+        ValueType value;
+        list<int>* tailing_list;
+    };
+
+    vector<head_tail> adjlist;
+
+    int findnode(ValueType node1_Value) {
+        int cnt = 0;
+        for (head_tail location : adjlist) {
+            if (location.value == node1_Value)
+                return cnt;
+            cnt++;
         }
         return -1;
     }
-    bool alltrue(vector<int> k){
-        for(int i=0;i<k.size();i++){
-            if(!(k[i]==2))
-                return false;
-        }
-        return true;
+
+public:
+    Adj_List() {
+        adjlist.resize(0);
     }
-    void ChangeReference(int to,int from){
-        for(int i=0;i<adjlst.size();i++){
-            for(list<int>::iterator cnt=adjlst[i].lst.begin();cnt!=adjlst[i].lst.end();cnt++){
-                if(*cnt==from)
-                    *cnt=to;
-            }
-        }
-    }
-    void RemoveNonexistentReferences(int g){
-        for(int i=0;i<adjlst.size();i++){
-            adjlst[i].lst.remove(g);
-        }
-    }
-    void addconnection(int x, int y){
-        adjlst[x].lst.push_back(y);
-    }
-    bool exist(int x, int y){
-        for(list<int>::iterator cnt=adjlst[x].lst.begin();cnt!=adjlst[x].lst.end();cnt++){
-                if(*cnt==y)
-                    return true;
+    bool adjacent(ValueType node1_Value, ValueType node2_Value) {
+        int node1, node2;
+        node1 = findnode(node1_Value);
+        node2 = findnode(node2_Value);
+
+        if (node1 == -1 || node2 == -1)
+            return false;
+
+        for (int node : *(adjlist.at(node1).tailing_list)) {
+            if (node == node2)
+                return true;
         }
         return false;
     }
-public:
-    Graph(){
-        adjlst.resize(0);
+
+    vector<ValueType> neighbors(ValueType node1_Value) {
+        int node1 = findnode(node1_Value);
+        vector<ValueType>* return_vector = new vector<ValueType>();
+
+        if (node1 == -1)
+            return *return_vector;
+
+        for (int node : *(adjlist.at(node1).tailing_list)) {
+            return_vector->resize(return_vector->size() + 1);
+            return_vector->at(return_vector->size() - 1) = adjlist[node].value;
+        }
+        return *return_vector;
     }
-    Graph(Graph<T>& x){
-	adjlst.resize(x.adjlst.size());
-    for(int i=0;i<adjlst.size();i++){
-        Equal(adjlst[i], x.adjlst[i]);
-    }
-    }
-    void DeleteEdge(T data1, T data2){
-        int x,y;
-        x=Find(data1);
-        y=Find(data2);
-        if(x<0 || y<0 || !exist(x,y))
+    void addEdge(ValueType source, ValueType dest) {
+        int node1, node2;
+        node1 = findnode(source);
+        node2 = findnode(dest);
+        
+        if (node1 == -1 || node2 == -1)
             return;
-        adjlst[x].lst.remove(y);
-    }
-    void AddEdge(T data1, T data2){
-        int x,y;
-        x=Find(data1);
-        y=Find(data2);
-        if(x<0 || y<0 || exist(x,y))
-            return;
-        addconnection(x,y);
-    }
-    void addNode(T data){
-        if(Find(data)!=-1)
-            return;
-        sizeup();
-        adjlst[adjlst.size()-1].data=data;
-        adjlst[adjlst.size()-1].lst.clear();
+           
+        if (!adjacent(source, dest)) {
+            adjlist[node1].tailing_list->push_back(node2);
+        }
         return;
     }
-    void DeleteNode(T data){
-        int g=Find(data);
-        if(g<0)
+    void addNode(ValueType NewNode_Value) {
+        int node1 = findnode(NewNode_Value);
+
+        if (node1 != -1)
             return;
-        swap(g,adjlst.size()-1);
-        RemoveNonexistentReferences(g);
-        ChangeReference(g,adjlst.size()-1);
-        sizedown();
-    }
-    void dfs(T r, void visit(T data)){
-        int g=Find(r);
-        if(g<0)
-            return;
-        stack<int> x;
-        vector<int> passed;
-        passed.resize(adjlst.size());
-        fillvector(0,passed);
-        passed[g]=1;
-        x.push(g);
-        cout << "Depth First Traversal: ";
-        while(!alltrue(passed) && !x.empty()){
-            g=x.top();
-            x.pop();
-            visit(adjlst[g].data);
-            passed[g]=2;
-            for(list<int>::iterator i=adjlst[g].lst.begin();i!=adjlst[g].lst.end();i++){
-                if(!passed[*i]){
-                    x.push(*i);
-                    passed[*i]=1;
-                }
-            }
-        }
-        cout << endl;
+
+        adjlist.resize(adjlist.size() + 1);
+        adjlist[adjlist.size() - 1].value = NewNode_Value;
+        adjlist[adjlist.size() - 1].tailing_list = new list<int>();
         return;
     }
-    void bfs(T r, void visit(T data)){
-        int g=Find(r);
-        if(g<0)
+    void deleteEdge(ValueType source, ValueType dest) {
+        int node1 = findnode(source);
+        int node2 = findnode(dest);
+
+        if (node1 == -1)
             return;
-        queue<int> x;
-        vector<int> passed;
-        passed.resize(adjlst.size());
-        fillvector(0,passed);
-        passed[g]=1;
-        x.push(g);
-        cout << "Breadth First Traversal: ";
-        while(!alltrue(passed) && !x.empty()){
-            g=x.front();
-            x.pop();
-            visit(adjlst[g].data);
-            passed[g]=2;
-            for(list<int>::iterator i=adjlst[g].lst.begin();i!=adjlst[g].lst.end();i++){
-                if(!passed[*i]){
-                    x.push(*i);
-                    passed[*i]=1;
-                }
+
+        adjlist[node1].tailing_list->remove(node2);
+        return;
+    }
+    void deleteNode(ValueType Delete_NodeValue) {
+        int node1 = findnode(Delete_NodeValue);
+
+        if (node1 == -1)
+            return;
+        bool k;
+        int lastnode = adjlist.size()-1;
+        for (head_tail list : adjlist) {
+            list.tailing_list->remove(node1);
+            k = false;
+            for (int node : *(list.tailing_list)) {
+                if (node == lastnode)
+                    k = true;
+            }
+            if (k) {
+                list.tailing_list->remove(lastnode);
+                list.tailing_list->push_back(node1);
             }
         }
-        cout << endl;
+
+        adjlist[node1].value = adjlist[lastnode].value;
+        adjlist[node1].tailing_list = adjlist[lastnode].tailing_list;
+        adjlist.resize(adjlist.size() - 1);
         return;
     }
 };
 
-void print(int data){
-    cout << data << " ";
-}
-
-int main()
-{
-    Graph<int> r;
-    r.addNode(5);
-    r.addNode(6);
-    r.addNode(9);
-    r.addNode(3);
-    r.AddEdge(5,9);
-    r.AddEdge(6,5);
-    r.AddEdge(6,3);
-    r.addNode(4);
-    r.addNode(0);
-    r.AddEdge(3,4);
-    r.AddEdge(4,0);
-    r.dfs(6,print);
-    Graph<int> y(r);
-    y.bfs(6,print);
-    y.removeNode(0);
-    y.dfs(6,print);
-    y.addNode(8);
-    y.dfs(3,print);
-    y.DeleteConnection(3,4);
-    y.dfs(3,print);
-    return 0;
-}
